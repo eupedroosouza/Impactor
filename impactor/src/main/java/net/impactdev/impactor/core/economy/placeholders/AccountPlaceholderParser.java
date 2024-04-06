@@ -31,6 +31,7 @@ import com.google.common.base.Suppliers;
 import net.impactdev.impactor.api.economy.EconomyService;
 import net.impactdev.impactor.api.economy.accounts.Account;
 import net.impactdev.impactor.api.economy.currency.Currency;
+import net.impactdev.impactor.api.economy.currency.CurrencyProvider;
 import net.impactdev.impactor.api.platform.sources.PlatformSource;
 import net.impactdev.impactor.api.text.placeholders.PlaceholderArguments;
 import net.impactdev.impactor.api.text.placeholders.PlaceholderParser;
@@ -40,6 +41,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -57,18 +59,20 @@ public class AccountPlaceholderParser implements PlaceholderParser {
     @Override
     public @NotNull Component parse(@Nullable PlatformSource viewer, @NotNull Context context) {
         PlaceholderArguments arguments = context.require(PlaceholderArguments.class);
-        Currency currency = this.currency(arguments);
+        ParsingContext ctx = ParsingContext.createFrom(arguments);
 
-        if(viewer == null) {
-            return Component.empty();
-        }
+        return context.request(Account.class)
+                .map(ctx.resolver::resolve)
+                .orElseGet(() -> {
+                    if(viewer != null) {
+                        Account relative = this.cache.get(new AccountRequest(viewer.uuid(), ctx.currency())).getNow(null);
+                        if(relative != null) {
+                            return ctx.resolver.resolve(relative);
+                        }
+                    }
 
-        Account account = this.cache.get(new AccountRequest(viewer.uuid(), currency)).getNow(null);
-        if(account != null) {
-            return currency.format(account.balance());
-        }
-
-        return Component.text("Fetching balance...");
+                    return Component.text("Fetching balance...");
+                });
     }
 
     @SuppressWarnings("PatternValidation")
@@ -85,5 +89,55 @@ public class AccountPlaceholderParser implements PlaceholderParser {
         }
 
         return service.get().currencies().primary();
+    }
+
+    @SuppressWarnings("PatternValidation")
+    private record ParsingContext(Currency currency, Resolver resolver) {
+
+        static ParsingContext createFrom(PlaceholderArguments arguments) {
+            Currency currency = null;
+            Resolver resolver = null;
+
+            while (arguments.hasNext()) {
+                    String argument = arguments.pop();
+                    if (argument.equals("balance")) {
+                        resolver = Resolvers.BALANCE.resolver;
+                    } else if (argument.equals("name")) {
+                        resolver = Resolvers.NAME.resolver;
+                    } else if (argument.startsWith("currency")) {
+                        CurrencyProvider provider = EconomyService.instance().currencies();
+                        String[] parts = argument.split("=");
+                        if (parts.length != 2) {
+                            currency = provider.primary();
+                        } else {
+                            String key = parts[1];
+                            Key id = Key.key(key.replace('/', ':'));
+                            currency = provider.currency(id).orElse(provider.primary());
+                        }
+                    }
+                }
+
+            return new ParsingContext(currency, resolver);
+            }
+
+    }
+
+    @FunctionalInterface
+    private interface Resolver {
+        Component resolve(Account account);
+    }
+
+    private enum Resolvers {
+        BALANCE(account -> account.currency().format(account.balance())),
+        NAME(account -> {
+            PlatformSource source = PlatformSource.factory().fromID(account.owner());
+            return source.name();
+        });
+
+        private final Resolver resolver;
+
+        Resolvers(Resolver resolver) {
+            this.resolver = resolver;
+        }
     }
 }
