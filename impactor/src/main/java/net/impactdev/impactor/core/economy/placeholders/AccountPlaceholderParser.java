@@ -59,15 +59,16 @@ public class AccountPlaceholderParser implements PlaceholderParser {
     @Override
     public @NotNull Component parse(@Nullable PlatformSource viewer, @NotNull Context context) {
         PlaceholderArguments arguments = context.require(PlaceholderArguments.class);
-        ParsingContext ctx = ParsingContext.createFrom(arguments);
+        Currency currency = this.currency(arguments);
+        Resolver resolver = this.resolver(arguments);
 
         return context.request(Account.class)
-                .map(ctx.resolver::resolve)
+                .map(resolver::resolve)
                 .orElseGet(() -> {
                     if(viewer != null) {
-                        Account relative = this.cache.get(new AccountRequest(viewer.uuid(), ctx.currency())).getNow(null);
+                        Account relative = this.cache.get(new AccountRequest(viewer.uuid(), currency)).getNow(null);
                         if(relative != null) {
-                            return ctx.resolver.resolve(relative);
+                            return resolver.resolve(relative);
                         }
                     }
 
@@ -77,6 +78,7 @@ public class AccountPlaceholderParser implements PlaceholderParser {
 
     @SuppressWarnings("PatternValidation")
     private Currency currency(PlaceholderArguments arguments) {
+        arguments.reset();
         if(arguments.hasNext()) {
             String namespace = arguments.popOrDefault();
             String value = arguments.popOrDefault();
@@ -91,35 +93,18 @@ public class AccountPlaceholderParser implements PlaceholderParser {
         return service.get().currencies().primary();
     }
 
-    @SuppressWarnings("PatternValidation")
-    private record ParsingContext(Currency currency, Resolver resolver) {
-
-        static ParsingContext createFrom(PlaceholderArguments arguments) {
-            Currency currency = null;
-            Resolver resolver = null;
-
-            while (arguments.hasNext()) {
-                    String argument = arguments.pop();
-                    if (argument.equals("balance")) {
-                        resolver = Resolvers.BALANCE.resolver;
-                    } else if (argument.equals("name")) {
-                        resolver = Resolvers.NAME.resolver;
-                    } else if (argument.startsWith("currency")) {
-                        CurrencyProvider provider = EconomyService.instance().currencies();
-                        String[] parts = argument.split("=");
-                        if (parts.length != 2) {
-                            currency = provider.primary();
-                        } else {
-                            String key = parts[1];
-                            Key id = Key.key(key.replace('/', ':'));
-                            currency = provider.currency(id).orElse(provider.primary());
-                        }
-                    }
-                }
-
-            return new ParsingContext(currency, resolver);
+    private Resolver resolver(PlaceholderArguments arguments) {
+        arguments.reset();
+        while (arguments.hasNext()) {
+            String argument = arguments.pop();
+            if (argument.equals("balance")) {
+                return Resolvers.BALANCE.resolver;
+            } else if (argument.equals("name")) {
+                return Resolvers.NAME.resolver;
             }
+        }
 
+        return Resolvers.BALANCE.resolver;
     }
 
     @FunctionalInterface
