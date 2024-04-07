@@ -45,6 +45,8 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AccountPlaceholderParser implements PlaceholderParser {
 
@@ -79,15 +81,15 @@ public class AccountPlaceholderParser implements PlaceholderParser {
     @SuppressWarnings("PatternValidation")
     private Currency currency(PlaceholderArguments arguments) {
         arguments.reset();
-        if(arguments.hasNext()) {
-            String namespace = arguments.popOrDefault();
-            String value = arguments.popOrDefault();
+        while(arguments.hasNext()) {
+            Pattern pattern = Pattern.compile("(?<namespace>[a-z0-9_\\-.]+)/(?<value>[a-z0-9_\\-./]+)");
+            Matcher matcher = pattern.matcher(arguments.pop());
+            if(matcher.matches()) {
+                String namespace = matcher.group("namespace");
+                String value = matcher.group("value");
 
-            if(namespace == null || value == null) {
-                return service.get().currencies().primary();
+                return service.get().currencies().currency(Key.key(namespace, value)).orElse(service.get().currencies().primary());
             }
-
-            return service.get().currencies().currency(Key.key(namespace, value)).orElse(service.get().currencies().primary());
         }
 
         return service.get().currencies().primary();
