@@ -25,9 +25,7 @@
 
 package net.impactdev.impactor.core.commands;
 
-import net.impactdev.impactor.api.Impactor;
 import net.impactdev.impactor.api.events.ImpactorEvent;
-import net.impactdev.impactor.api.logging.PluginLogger;
 import net.impactdev.impactor.core.commands.economy.EconomyCommands;
 import net.impactdev.impactor.core.commands.events.RegisterCommandsEvent;
 import net.impactdev.impactor.core.commands.pagination.PaginationCommands;
@@ -37,8 +35,6 @@ import net.impactdev.impactor.core.platform.commands.PlatformCommands;
 import net.kyori.event.EventBus;
 
 public final class CommandsModule implements ImpactorModule {
-
-
 
     @Override
     public void subscribe(EventBus<ImpactorEvent> bus) {

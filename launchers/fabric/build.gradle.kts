@@ -59,7 +59,7 @@ dependencies {
         libs.adventureFabric
     ).forEach { include(it) }
 
-    modCompileOnly("eu.pb4:placeholder-api:2.1.3+1.20.1")
+    include(modImplementation("eu.pb4:placeholder-api:2.1.3+1.20.1")!!)
     include("io.leangen.geantyref:geantyref:1.3.13")
 
     modRuntimeOnly("me.lucko:fabric-permissions-api:0.2-SNAPSHOT")

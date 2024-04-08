@@ -25,6 +25,7 @@
 
 package net.impactdev.impactor.fabric;
 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.impactdev.impactor.api.Impactor;
 import net.impactdev.impactor.api.events.ImpactorEventBus;
@@ -32,7 +33,6 @@ import net.impactdev.impactor.api.platform.Platform;
 import net.impactdev.impactor.api.platform.players.PlatformPlayer;
 import net.impactdev.impactor.api.platform.players.events.ClientConnectionEvent;
 import net.impactdev.impactor.api.plugin.ImpactorPlugin;
-import net.impactdev.impactor.api.scoreboards.AssignedScoreboard;
 import net.impactdev.impactor.core.modules.ModuleInitializer;
 import net.impactdev.impactor.core.plugin.ImpactorBootstrapper;
 import net.impactdev.impactor.fabric.commands.FabricCommandModule;
@@ -44,7 +44,6 @@ import net.impactdev.impactor.fabric.ui.FabricUIModule;
 import net.impactdev.impactor.minecraft.mixins.MixinBridge;
 import net.impactdev.impactor.minecraft.platform.sources.ImpactorPlatformPlayer;
 import net.impactdev.impactor.minecraft.plugin.GameImpactorPlugin;
-import net.impactdev.impactor.minecraft.scoreboard.DevScoreboard;
 
 public final class FabricImpactorPlugin extends GameImpactorPlugin implements ImpactorPlugin {
 
@@ -62,6 +61,10 @@ public final class FabricImpactorPlugin extends GameImpactorPlugin implements Im
         if(platform.info().plugin("placeholder-api").isPresent()) {
             var papi = new PlaceholderAPIIntegration();
             papi.subscribe(this.logger(), ImpactorEventBus.bus());
+
+            ServerLifecycleEvents.SERVER_STARTING.register(ignore -> {
+                papi.registerToPapi();
+            });
         }
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {

@@ -25,25 +25,34 @@
 
 package net.impactdev.impactor.fabric.commands;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.impactdev.impactor.api.commands.ImpactorCommandManager;
-import net.impactdev.impactor.api.events.ImpactorEvent;
-import net.impactdev.impactor.api.providers.FactoryProvider;
-import net.impactdev.impactor.core.commands.events.RegisterCommandsEvent;
-import net.impactdev.impactor.core.modules.ImpactorModule;
-import net.kyori.event.EventBus;
+import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.Placeholders;
+import net.impactdev.impactor.api.commands.CommandSource;
+import net.impactdev.impactor.fabric.FabricImpactorBootstrap;
+import net.impactdev.impactor.minecraft.api.text.AdventureTranslator;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import org.incendo.cloud.annotation.specifier.Greedy;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.processing.CommandContainer;
 
-public final class FabricCommandModule implements ImpactorModule {
+@CommandContainer
+public final class PAPITestCommand {
 
-    @Override
-    public void factories(FactoryProvider provider) {
-        provider.register(ImpactorCommandManager.Factory.class, new FabricCommandManagerFactory());
-    }
+    @Command("impactor papi test <placeholder>")
+    public void test(CommandSource source, @Argument("placeholder") @Greedy String placeholder) {
+        ServerPlayer minecraft = FabricImpactorBootstrap.instance().server()
+                .map(server -> server.getPlayerList().getPlayer(source.source().uuid()))
+                .orElse(null);
 
-    @Override
-    public void subscribe(EventBus<ImpactorEvent> bus) {
-        if(FabricLoader.getInstance().isDevelopmentEnvironment()) {
-            bus.subscribe(RegisterCommandsEvent.class, event -> event.register(PAPITestCommand.class));
+        if(minecraft == null) {
+            return;
         }
+
+        Component input = Component.literal(placeholder);
+        Component result = Placeholders.parseText(input, PlaceholderContext.of(minecraft));
+        source.sendMessage(AdventureTranslator.fromNative(result));
     }
+
 }
