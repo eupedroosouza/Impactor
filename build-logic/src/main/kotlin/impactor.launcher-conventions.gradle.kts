@@ -44,6 +44,7 @@ tasks {
         archiveBaseName.set("Impactor-${project.name.capitalize()}")
         archiveVersion.set(writeVersion(true))
     }
+
     val minecraft = rootProject.property("minecraft")
 
     shadowJar {

@@ -100,7 +100,7 @@ tasks {
 publishing {
     publications {
         create<MavenPublication>(project.name) {
-            from(components["java"])
+            artifact(tasks.remapProductionJar)
 
             groupId = "net.impactdev.impactor.launchers"
             artifactId = "fabric"
