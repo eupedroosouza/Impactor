@@ -55,7 +55,7 @@ public class AccountPlaceholderParser implements PlaceholderParser {
     private record AccountRequest(UUID uuid, Currency currency) {}
 
     private final AsyncLoadingCache<AccountRequest, Account> cache = Caffeine.newBuilder()
-            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .expireAfterWrite(1, TimeUnit.MINUTES)
             .buildAsync(request -> service.get().account(request.currency, request.uuid).join());
 
     @Override
