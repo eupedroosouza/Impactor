@@ -30,23 +30,25 @@ dependencies {
 
     include("io.leangen.geantyref:geantyref:1.3.13")
 
-    modImplementation("net.impactdev.impactor.commands:forge:5.2.0+1.20.1-SNAPSHOT") {
+    implementation("net.impactdev.impactor.commands:common:5.2.5+1.20.1-SNAPSHOT")
+    include(modImplementation("net.impactdev.impactor.commands:forge:5.3.0+1.20.1-SNAPSHOT") {
         exclude("net.impactdev.impactor.api", "config")
         exclude("net.impactdev.impactor.api", "core")
         exclude("net.impactdev.impactor.api", "items")
         exclude("net.impactdev.impactor.api", "players")
         exclude("net.impactdev.impactor.api", "plugins")
         exclude("net.impactdev.impactor.api", "storage")
-    }
+    })
 
     listOf(
         libs.cloudCore,
+        libs.cloudBrigadier,
         libs.cloudServices,
         libs.cloudAnnotations,
-        libs.cloudMinecraftExtras,
         libs.cloudConfirmations,
         libs.cloudProcessorsCommon,
-    ).forEach { include(it) }
+        libs.cloudMinecraftExtras,
+        ).forEach { include(it) }
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
@@ -57,9 +59,7 @@ tasks {
         val mapped = "loom_mappings_1_20_1_layered_hash_40359_v2_forge_1_20_1_47_0_3_forge"
         dependencies {
             include(dependency("$mapped.ca.landonjw.gooeylibs:forge:.*"))
-            include(dependency("$mapped.net.impactdev.impactor.commands:forge:.*"))
-            include(dependency("$mapped.net.impactdev.impactor.commands:common:.*"))
-            include(dependency("$mapped.net.impactdev.impactor.api:commands:.*"))
+            include(dependency("net.impactdev.impactor.commands:common:.*"))
 
             exclude("ca/landonjw/gooeylibs2/forge/GooeyLibs.class")
             exclude("**/PlatformMethods.class")
