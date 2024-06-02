@@ -30,8 +30,8 @@ dependencies {
 
     include("io.leangen.geantyref:geantyref:1.3.13")
 
-    implementation("net.impactdev.impactor.commands:common:5.2.5+1.20.1-SNAPSHOT")
-    include(modImplementation("net.impactdev.impactor.commands:forge:5.3.0+1.20.1-SNAPSHOT") {
+    implementation("net.impactdev.impactor.commands:common:5.3.1+1.20.1-SNAPSHOT")
+    include(modImplementation("net.impactdev.impactor.commands:forge:5.3.1+1.20.1-SNAPSHOT") {
         exclude("net.impactdev.impactor.api", "config")
         exclude("net.impactdev.impactor.api", "core")
         exclude("net.impactdev.impactor.api", "items")
