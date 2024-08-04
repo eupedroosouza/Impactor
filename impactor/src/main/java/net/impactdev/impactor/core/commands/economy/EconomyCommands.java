@@ -233,11 +233,14 @@ public final class EconomyCommands {
             ImpactorTranslations.ECONOMY_TRANSFER_NOT_ALLOWED.send(sender, context);
             return;
         } else {
-            Config config = ((ImpactorEconomyService) service).config();
-            if(c.transferable() == TriState.NOT_SET && !config.get(EconomyConfig.ALLOW_TRANSFER_ON_NOT_SET)) {
-                ImpactorTranslations.ECONOMY_TRANSFER_NOT_ALLOWED.send(sender, context);
-                return;
+            if (service instanceof ImpactorEconomyService impactorEconomyService) {
+                Config config = impactorEconomyService.config();
+                if(c.transferable() == TriState.NOT_SET && !config.get(EconomyConfig.ALLOW_TRANSFER_ON_NOT_SET)) {
+                    ImpactorTranslations.ECONOMY_TRANSFER_NOT_ALLOWED.send(sender, context);
+                    return;
+                }
             }
+
         }
 
         service.account(c, focus.uuid()).thenAccept(s -> {
