@@ -461,7 +461,9 @@ public final class ImpactorAccount implements Account {
         EconomyTransactionEvent.Post event = new ImpactorEconomyTransactionEvent.Post(transaction);
         this.postAndVerify(event);
 
-        ((ImpactorEconomyService) this.service).storage().logTransaction(transaction);
+        if (this.service instanceof ImpactorEconomyService impactorEconomyService) {
+            impactorEconomyService.storage().logTransaction(transaction);
+        }
         return transaction;
     }
 
